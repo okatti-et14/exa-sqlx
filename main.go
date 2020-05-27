@@ -30,6 +30,17 @@ func main() {
 	}
 
 	users := []model.Users{}
-	db.Select(&users, "select * from users limit 1")
-	fmt.Println(*users[0].UserId)
+	db.Select(&users,
+		`select 
+			users.user_id, 
+			users.password, 
+			users.insert_date, 
+			users.update_date, 
+			user_names.user_name as "user_names.user_name"
+		from users 
+		left join user_names
+			on users.user_id = user_names.user_id`)
+	fmt.Println(users)
+	fmt.Println(*users[0].UserID)
+	fmt.Println(users[1].UserNames)
 }
