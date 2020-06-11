@@ -8,7 +8,7 @@ services:
       - POSTGRES_PASSWORD=test01
       - POSTGRES_DB=test01
     ports:
-      - "15432:5432"
+      - "15433:5432"
     volumes:
       - database:/var/lib/postgresql/data
       - ./initdb:/docker-entrypoint-initdb.d
