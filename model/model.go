@@ -18,10 +18,5 @@ type UserNames struct {
 }
 
 // UsersUnionUseNames model for users table join user_names table
-type UsersUnionUseNames struct {
-	UserID     *string    `db:"user_id"`
-	UserName   *string    `db:"user_names"`
-	Password   *string    `db:"password"`
-	InsertDate *time.Time `db:"insert_date"`
-	UpdateDate *time.Time `db:"update_date"`
+t!
 }
