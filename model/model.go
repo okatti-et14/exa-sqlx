@@ -4,7 +4,7 @@ import "time"
 
 // Users model for users table
 type Users struct {
-	UserID     *string    `db:"user_id"`
+	UserID     *int       `db:"user_id"`
 	Password   *string    `db:"password"`
 	InsertDate *time.Time `db:"insert_date"`
 	UpdateDate *time.Time `db:"update_date"`
@@ -13,7 +13,7 @@ type Users struct {
 
 // UserNames model for user_name table
 type UserNames struct {
-	UserID   *string `db:"user_id"`
+	UserID   *int    `db:"user_id"`
 	UserName *string `db:"user_name"`
 }
 

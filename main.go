@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"gosqlx/model"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -24,11 +25,13 @@ func main() {
 	}
 
 	readDB := sqlx.NewDb(db1, "postgres")
-	rows := sqlmock.NewRows([]string{"id", "title", "body"}).
-		AddRow(1, "post 1", "hello").
-		AddRow(2, "post 2", "world")
+	rows := sqlmock.NewRows([]string{"user_id", "password"}).
+		AddRow(1, "hello").
+		AddRow(2, "world")
 
-	mock1.ExpectQuery(`^SELECT (.+) FROM posts WHERE id = \$1 AND (.+)`).WithArgs(1, 1).WillReturnRows(rows)
+	mock1.ExpectQuery(`^select distinct user_id, password,visitcnt AS "mcustshopvisitcnt.visitcnt" 
+	from users
+	where user_id = \$1 (.+)`).WithArgs(1, "b").WillReturnRows(rows)
 	selects(readDB, 1)
 	if err := mock1.ExpectationsWereMet(); err != nil {
 		fmt.Print("err::::")
@@ -37,25 +40,33 @@ func main() {
 }
 
 func selects(db *sqlx.DB, id int) {
-	rows, err := db.Queryx(`SELECT id ,title FROM posts WHERE id = $1 AND tiltle = $2`, id, id)
+
+	//IN句含めて名前付きQuery使う方法
+	bindParams := map[string]interface{}{
+		"userid":   id,
+		"password": "b",
+	}
+	basequery := `
+	select distinct user_id, password,visitcnt AS "mcustshopvisitcnt.visitcnt"
+	from users
+	where user_id = :userid and password = :password`
+	query, args, err := sqlx.Named(basequery, bindParams)
 	if err != nil {
 		fmt.Print("err::::")
 		fmt.Println(err)
-		return
 	}
-	defer func() {
-		if rows != nil {
-			rows.Close()
-		}
-	}()
-	var posts []*post
-	for rows.Next() {
-		p := &post{}
-		if err := rows.Scan(&p.ID, &p.Title, &p.Body); err != nil {
-			return
-		}
-		posts = append(posts, p)
-		fmt.Println(*p)
+	query, args, err = sqlx.In(query, args...)
+	if err != nil {
+		fmt.Print("err::::")
+		fmt.Println(err)
 	}
-	fmt.Println(*rows)
+	users2 := []*model.Users{}
+	query = db.Rebind(query)
+	err = db.Select(&users2, query, args...)
+	if err != nil {
+		fmt.Print("err::::")
+		fmt.Println(err)
+	}
+	fmt.Println(query)
+	fmt.Println(args)
 }
