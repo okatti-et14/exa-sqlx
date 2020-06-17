@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"gosqlx/model"
+	"log"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -37,6 +38,10 @@ func main() {
 		fmt.Print("err::::")
 		fmt.Println(err)
 	}
+	rows = sqlmock.NewRows([]string{"user_id"}).AddRow(1)
+	mock1.ExpectQuery(`select user_id from users`).WillReturnRows(rows)
+	singleSelect(readDB)
+	sqlxExe()
 }
 
 func selects(db *sqlx.DB, id int) {
@@ -69,4 +74,43 @@ func selects(db *sqlx.DB, id int) {
 	}
 	fmt.Println(query)
 	fmt.Println(args)
+}
+
+func singleSelect(db *sqlx.DB) {
+	user := &model.Users{}
+	err := db.Get(user, `select user_id from users`)
+	if err != nil {
+		fmt.Println("errerrerr", err)
+		return
+	}
+	fmt.Println(user)
+	fmt.Println(*user.UserID)
+}
+
+func sqlxExe() {
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		"test01",
+		"test01",
+		"localhost",
+		"15433",
+		"test01",
+		"disable")
+	db, err := sqlx.Connect("postgres", dsn)
+	//defer db.Close()
+	if err != nil {
+		log.Fatal(err)
+		fmt.Println(err)
+	}
+	user := []*model.Users{}
+	//err = db.Get(user, `select password from users`)
+	err = db.Select(&user, `select password from users where password='afa'`)
+	if err != nil {
+		fmt.Println("errerrerr", err)
+		return
+	}
+	fmt.Println(user)
+	if len(user) != 0 {
+		fmt.Println(*user[0].Password)
+	}
 }
